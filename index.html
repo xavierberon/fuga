@@ -4,59 +4,34 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FUGA editor de precios</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <style>
     :root {
       --bg: #ffffff;
-      --panel: rgba(255, 255, 255, 0.94);
+      --panel: rgba(255, 255, 255, 0.96);
       --panel-border: rgba(221, 221, 221, 0.92);
       --accent: #f97316;
       --accent-dark: #dd5b0f;
-      --accent-soft: #fff4ec;
       --text: #171717;
       --muted: #6b7280;
       --shadow: 0 18px 40px rgba(24, 24, 27, 0.08);
-      --shadow-soft: 0 8px 22px rgba(24, 24, 27, 0.08);
       --radius: 24px;
+      --guide: rgba(249, 115, 22, 0.9);
+      --baseline: rgba(33, 197, 191, 0.95);
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
+      padding: 24px;
       font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
       color: var(--text);
       background: var(--bg);
-      padding: 24px;
-      position: relative;
-      overflow-x: hidden;
     }
-
-    body::before,
-    body::after {
-      display: none;
-    }
-
-    body::before {
-      top: -80px;
-      left: -100px;
-      background: radial-gradient(circle, rgba(249, 115, 22, 0.18), transparent 70%);
-    }
-
-    body::after {
-      right: -60px;
-      bottom: -90px;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.9), transparent 68%);
-    }
-
     .app {
-      position: relative;
-      z-index: 1;
       max-width: 1360px;
       margin: 0 auto;
       display: grid;
@@ -64,197 +39,129 @@
       gap: 20px;
       align-items: start;
     }
-
     .toolbar {
       position: sticky;
       top: 24px;
       display: grid;
-      grid-template-columns: 1fr;
       gap: 16px;
       padding: 16px;
       background: var(--panel);
       border: 1px solid var(--panel-border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(16px);
     }
-
-    .toolbar-copy {
-      position: relative;
-      padding: 28px;
+    .toolbar-copy, .controls, .workspace-card {
+      background: #fff;
+      border: 1px solid rgba(231, 226, 220, 0.92);
       border-radius: 20px;
-      overflow: hidden;
-      background: #ffffff;
-      color: var(--text);
-      min-height: 160px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      border: 1px solid rgba(231, 226, 220, 0.9);
-      gap: 22px;
     }
-
-    .toolbar-copy::before,
-    .toolbar-copy::after {
-      content: "";
-      position: absolute;
-      border-radius: 999px;
+    .toolbar-copy {
+      padding: 28px;
     }
-
-    .toolbar-copy::before {
-      display: none;
+    .brand-logo {
+      width: 168px;
+      display: block;
+      margin-bottom: 18px;
     }
-
-    .toolbar-copy::after {
-      width: 120px;
-      height: 120px;
-      right: -38px;
-      bottom: -38px;
-      background: rgba(249, 115, 22, 0.06);
-    }
-
     .toolbar-copy h1 {
       margin: 0 0 10px;
       font-size: 1.9rem;
       line-height: 0.9;
       letter-spacing: -0.05em;
-      max-width: 260px;
-      font-weight: 700;
-      position: relative;
-      z-index: 1;
     }
-
     .toolbar-copy p {
       margin: 0;
       color: var(--muted);
       font-size: 0.92rem;
       line-height: 1.45;
-      max-width: 260px;
-      position: relative;
-      z-index: 1;
     }
-
-    .brand-lockup {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      gap: 18px;
-    }
-
-    .brand-logo {
-      width: 168px;
-      max-width: 100%;
-      height: auto;
-      display: block;
-    }
-
     .controls {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-      align-content: start;
       padding: 12px;
-      border-radius: 20px;
-      background: #ffffff;
-      border: 1px solid rgba(231, 226, 220, 0.92);
-      box-shadow: none;
+      display: grid;
+      gap: 10px;
     }
-
-    button,
-    .upload-label {
+    button, .upload-label {
       appearance: none;
       border: 1px solid transparent;
       border-radius: 999px;
+      min-height: 50px;
       padding: 14px 16px;
       font: inherit;
       font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
-      min-height: 50px;
       display: flex;
       align-items: center;
       justify-content: center;
-      letter-spacing: -0.01em;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
-
-    button:hover,
-    .upload-label:hover {
+    button:hover, .upload-label:hover {
       transform: translateY(-2px);
-      box-shadow: var(--shadow-soft);
+      box-shadow: 0 8px 22px rgba(24, 24, 27, 0.08);
     }
-
-    .upload-label,
-    .btn-primary {
+    .upload-label, .btn-export {
       background: var(--accent);
       color: #fff;
       border-color: var(--accent);
     }
-
     .btn-secondary {
-      background: #111111;
-      color: #ffffff;
-      border-color: #111111;
+      background: #111;
+      color: #fff;
+      border-color: #111;
     }
-
     .btn-danger {
-      background: #ffffff;
-      color: #111111;
+      background: #fff;
+      color: #111;
       border-color: rgba(206, 206, 206, 0.95);
     }
-
-    .btn-export {
-      background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
-    }
-
-    #imageLoader {
-      display: none;
-    }
-
+    #imageLoader { display: none; }
     .workspace-card {
       padding: 16px;
-      background: rgba(255, 255, 255, 0.84);
-      border: 1px solid rgba(232, 232, 232, 0.92);
-      border-radius: 28px;
       box-shadow: var(--shadow);
     }
-
     .status-bar {
       display: flex;
-      justify-content: space-between;
       gap: 12px;
       flex-wrap: wrap;
       margin-bottom: 14px;
       color: var(--muted);
       font-size: 0.9rem;
     }
-
     .status-bar span {
       padding: 10px 13px;
       border-radius: 999px;
       background: rgba(250, 250, 249, 0.92);
       border: 1px solid rgba(232, 232, 232, 0.92);
     }
-
     .workspace {
       position: relative;
-      width: 100%;
-      overflow: auto;
-      border-radius: 24px;
-      background: #ffffff;
       min-height: 420px;
       padding: 20px;
+      border-radius: 24px;
+      background: #fff;
       border: 1px solid rgba(236, 236, 236, 0.92);
     }
-
     .canvas-list {
       display: grid;
       gap: 24px;
       width: 100%;
-      align-content: start;
     }
-
+    .empty-state {
+      position: absolute;
+      inset: 20px;
+      display: none;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      pointer-events: none;
+    }
+    .empty-state span {
+      max-width: 460px;
+      padding: 24px 26px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(231, 226, 220, 0.92);
+      box-shadow: 0 12px 28px rgba(24, 24, 27, 0.06);
+    }
     .menu-sheet {
       position: relative;
       width: min(100%, 960px);
@@ -264,32 +171,27 @@
       background: rgba(255, 255, 255, 0.94);
       border: 1px solid rgba(236, 236, 236, 0.92);
       box-shadow: 0 14px 34px rgba(24, 24, 27, 0.06);
-      transition: transform 0.18s ease, box-shadow 0.18s ease, outline-color 0.18s ease;
       outline: 1px solid transparent;
     }
-
     .menu-sheet.active {
       outline-color: rgba(249, 115, 22, 0.32);
       box-shadow: 0 20px 42px rgba(24, 24, 27, 0.08);
       transform: translateY(-2px);
     }
-
     .sheet-badge {
       position: absolute;
       top: 12px;
       left: 26px;
-      z-index: 2;
+      z-index: 3;
       padding: 7px 11px;
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.92);
       color: var(--accent-dark);
       font-size: 0.78rem;
-      letter-spacing: 0.01em;
       border: 1px solid rgba(244, 224, 210, 0.95);
       box-shadow: 0 8px 20px rgba(24, 24, 27, 0.05);
       pointer-events: none;
     }
-
     .sheet-frame {
       position: relative;
       overflow: hidden;
@@ -298,11 +200,15 @@
       padding: 10px;
       border: 1px solid rgba(235, 230, 224, 0.9);
     }
-
-    .sheet-pdf,
-    .sheet-overlay,
-    .sheet-frame img,
-    .sheet-frame canvas {
+    .sheet-stage {
+      position: relative;
+      width: 100%;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 14px 28px rgba(24, 24, 27, 0.06);
+      background: #fff;
+    }
+    .sheet-canvas, .sheet-overlay {
       display: block;
       width: 100%;
       height: auto;
@@ -310,252 +216,99 @@
       user-select: none;
       -webkit-user-drag: none;
     }
-
-    .sheet-stage {
-      position: relative;
-      width: 100%;
-      aspect-ratio: var(--sheet-ratio, 1 / 1.4142);
-      border-radius: 14px;
-      overflow: hidden;
-      box-shadow: 0 14px 28px rgba(24, 24, 27, 0.06);
-      background: #fff;
-    }
-
-    .sheet-pdf {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      border: 0;
-      background: #fff;
-      pointer-events: none;
-    }
-
     .sheet-overlay {
       position: absolute;
       inset: 0;
       pointer-events: none;
     }
-
     .guide-layer {
       position: absolute;
       inset: 0;
       pointer-events: none;
       z-index: 1;
     }
-
     .guide-line {
       position: absolute;
-      background: rgba(249, 115, 22, 0.9);
+      background: var(--guide);
       box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.75);
     }
-
     .guide-line.baseline {
-      background: rgba(33, 197, 191, 0.95);
+      background: var(--baseline);
       box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55);
     }
-
     .guide-line.vertical {
       width: 1px;
       top: 0;
       bottom: 0;
     }
-
     .guide-line.horizontal {
       height: 1px;
       left: 0;
       right: 0;
     }
-
     .guide-measure {
       position: absolute;
       padding: 4px 8px;
       border-radius: 999px;
-      background: #111111;
-      color: #ffffff;
+      background: #111;
+      color: #fff;
       font-size: 11px;
       font-weight: 600;
       line-height: 1;
-      letter-spacing: 0.01em;
       white-space: nowrap;
       transform: translate(-50%, -50%);
       box-shadow: 0 8px 18px rgba(17, 17, 17, 0.16);
     }
-
-    .sheet-overlay .price-tag {
-      pointer-events: auto;
-      z-index: 2;
-    }
-
-    .export-source-canvas {
-      display: none !important;
-    }
-
-    .empty-state {
-      position: absolute;
-      inset: 20px;
-      display: none;
-      place-items: center;
-      padding: 48px;
-      text-align: center;
-      color: var(--muted);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .empty-state span {
-      display: inline-block;
-      max-width: 460px;
-      padding: 24px 26px;
-      border-radius: 22px;
-      background: rgba(255, 255, 255, 0.92);
-      border: 1px solid rgba(231, 226, 220, 0.92);
-      box-shadow: 0 12px 28px rgba(24, 24, 27, 0.06);
-    }
-
     .price-tag {
       position: absolute;
-      width: 120px;
-      min-height: 30px;
+      min-height: 0;
       padding: 0;
-      border: 1px solid rgba(17, 17, 17, 0.12);
+      border: 0;
       background: transparent;
-      border-radius: 12px;
+      border-radius: 8px;
       cursor: move;
       touch-action: none;
-      box-shadow: none;
-      transition: border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease, transform 0.16s ease;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+      z-index: 2;
+      pointer-events: auto;
     }
-
     .price-tag.active {
-      border-color: rgba(33, 197, 191, 0.72);
       box-shadow: 0 0 0 3px rgba(33, 197, 191, 0.14);
-      background: transparent;
-      transform: translateY(-1px);
     }
-
     .price-tag input {
       width: 100%;
-      min-height: 30px;
-      padding: 6px 10px 5px;
+      min-height: 0;
+      padding: 0;
       border: 0;
       outline: none;
       background: transparent;
       color: #000;
       font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      font-size: 10pt;
-      line-height: 1.05;
-      text-align: left;
-      cursor: text;
+      font-size: 9pt;
+      line-height: 1;
+      text-align: right;
       font-weight: 500;
+      font-variant-numeric: tabular-nums lining-nums;
+      font-feature-settings: "tnum" 1, "lnum" 1;
+      letter-spacing: 0.01em;
+      font-kerning: none;
+      cursor: text;
+      display: block;
+      text-rendering: geometricPrecision;
+      -webkit-font-smoothing: antialiased;
     }
-
-    .price-tag input::placeholder {
-      color: rgba(0, 0, 0, 0.34);
-    }
-
+    .price-tag.committed,
     .price-tag.exporting {
       border-color: transparent;
       box-shadow: none;
-      background: transparent;
     }
-
-    .price-tag.exporting input {
-      padding: 0;
-    }
-
-    .price-tag.committed {
-      border-color: transparent;
-      box-shadow: none;
-      background: transparent;
-    }
-
     .price-tag.committed input {
-      padding: 6px 10px 5px;
-    }
-
-    .price-tag.committed:not(.active) input {
+      pointer-events: none;
       cursor: move;
     }
-
-    .hide-for-export {
-      display: none !important;
-    }
-
-    @media (max-width: 720px) {
-      body {
-        padding: 16px;
-      }
-
-      .toolbar {
-        padding: 16px;
-        position: static;
-      }
-
-      .toolbar-copy h1 {
-        font-size: 1.7rem;
-      }
-
-      .controls {
-        width: 100%;
-        grid-template-columns: 1fr;
-      }
-
-      .controls > * {
-        justify-content: center;
-        text-align: center;
-      }
-
-      .workspace {
-        padding: 12px;
-      }
-
-      .menu-sheet {
-        padding: 10px;
-        border-radius: 20px;
-      }
-
-      .sheet-frame {
-        padding: 10px;
-      }
-
-      .empty-state {
-        inset: 12px;
-      }
-    }
-
     @media (max-width: 980px) {
-      .app {
-        grid-template-columns: 1fr;
-      }
-
-      .toolbar {
-        position: static;
-      }
-    }
-
-    @media print {
-      body {
-        background: #fff;
-        padding: 0;
-      }
-
-      .toolbar,
-      .status-bar {
-        display: none;
-      }
-
-      .workspace-card {
-        padding: 0;
-        border: 0;
-        box-shadow: none;
-        background: #fff;
-      }
-
-      .workspace {
-        padding: 0;
-        background: #fff;
-      }
+      .app { grid-template-columns: 1fr; }
+      .toolbar { position: static; }
     }
   </style>
 </head>
@@ -563,16 +316,10 @@
   <div class="app">
     <section class="toolbar">
       <div class="toolbar-copy">
-        <div class="brand-lockup">
-          <img
-            class="brand-logo"
-            src="data:image/png;base64,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"
-            alt="Logo FUGA"
-          >
-          <div>
-            <h1>Editor de precios</h1>
-            <p>Bienvenido, Pick.</p>
-          </div>
+        <img class="brand-logo" src="data:image/png;base64,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" alt="Logo FUGA">
+        <div>
+          <h1>Editor de precios</h1>
+          <p>Bienvenido, Pick.</p>
         </div>
       </div>
       <div class="controls">
@@ -580,6 +327,7 @@
         <input id="imageLoader" type="file" accept="application/pdf,.pdf" multiple>
         <button id="addPriceBtn" class="btn-secondary" type="button">Anadir Precio</button>
         <button id="duplicateBtn" class="btn-secondary" type="button">Duplicar Precio</button>
+        <button id="deleteBtn" class="btn-danger" type="button">Borrar Precio</button>
         <button id="clearBtn" class="btn-danger" type="button">Limpiar todo</button>
         <button id="exportBtn" class="btn-export" type="button">Exportar a PDF</button>
       </div>
@@ -589,7 +337,6 @@
       <div class="status-bar">
         <span id="message">Carga uno o varios PDF para empezar.</span>
       </div>
-
       <div class="workspace">
         <div id="canvasList" class="canvas-list"></div>
         <div id="emptyState" class="empty-state">
@@ -603,12 +350,13 @@
     const imageLoader = document.getElementById('imageLoader');
     const addPriceBtn = document.getElementById('addPriceBtn');
     const duplicateBtn = document.getElementById('duplicateBtn');
+    const deleteBtn = document.getElementById('deleteBtn');
     const clearBtn = document.getElementById('clearBtn');
     const exportBtn = document.getElementById('exportBtn');
     const canvasList = document.getElementById('canvasList');
     const message = document.getElementById('message');
     const emptyState = document.getElementById('emptyState');
-    const SNAP_THRESHOLD = 6;
+    const SNAP_THRESHOLD = 12;
     if (window.pdfjsLib) {
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
@@ -622,11 +370,8 @@
     function updateStatus(text) {
       message.textContent = text;
       addPriceBtn.disabled = !activeSheetId;
-      addPriceBtn.style.opacity = addPriceBtn.disabled ? '0.55' : '1';
-      addPriceBtn.style.cursor = addPriceBtn.disabled ? 'not-allowed' : 'pointer';
       duplicateBtn.disabled = !document.querySelector('.price-tag');
-      duplicateBtn.style.opacity = duplicateBtn.disabled ? '0.55' : '1';
-      duplicateBtn.style.cursor = duplicateBtn.disabled ? 'not-allowed' : 'pointer';
+      deleteBtn.disabled = !document.querySelector('.price-tag.active');
     }
 
     function toggleEmptyState() {
@@ -635,11 +380,6 @@
 
     function getSheetElement(sheetId) {
       return canvasList.querySelector(`[data-sheet-id="${sheetId}"]`);
-    }
-
-    function getSheetFrame(sheetId) {
-      const sheet = getSheetElement(sheetId);
-      return sheet ? sheet.querySelector('.sheet-frame') : null;
     }
 
     function getSheetOverlay(sheetOrId) {
@@ -653,7 +393,7 @@
     }
 
     function getSheetCanvas(sheet) {
-      return sheet ? sheet.querySelector('.export-source-canvas') : null;
+      return sheet ? sheet.querySelector('.sheet-canvas') : null;
     }
 
     function getGuideLayer(sheetOrId) {
@@ -663,261 +403,91 @@
 
     function clearGuides(sheetOrId) {
       const guideLayer = getGuideLayer(sheetOrId);
-      if (guideLayer) {
-        guideLayer.innerHTML = '';
-      }
+      if (guideLayer) guideLayer.innerHTML = '';
     }
 
-    function renderGuideLine(guideLayer, axis, position) {
+    function renderGuideLine(guideLayer, axis, position, baseline = false) {
       const guide = document.createElement('div');
-      guide.className = `guide-line ${axis === 'x' ? 'vertical' : 'horizontal'}`;
-      if (axis === 'x') {
-        guide.style.left = `${position}px`;
-      } else {
-        guide.style.top = `${position}px`;
-      }
-      guideLayer.appendChild(guide);
-    }
-
-    function renderBaselineGuide(guideLayer, position) {
-      const guide = document.createElement('div');
-      guide.className = 'guide-line horizontal baseline';
-      guide.style.top = `${position}px`;
-      guideLayer.appendChild(guide);
-    }
-
-    function renderColumnGuide(guideLayer, position) {
-      const guide = document.createElement('div');
-      guide.className = 'guide-line vertical baseline';
-      guide.style.left = `${position}px`;
+      guide.className = `guide-line ${axis === 'x' ? 'vertical' : 'horizontal'}${baseline ? ' baseline' : ''}`;
+      if (axis === 'x') guide.style.left = `${position}px`;
+      else guide.style.top = `${position}px`;
       guideLayer.appendChild(guide);
     }
 
     function renderMeasure(guideLayer, x, y, text) {
-      const label = document.createElement('div');
-      label.className = 'guide-measure';
-      label.style.left = `${x}px`;
-      label.style.top = `${y}px`;
-      label.textContent = text;
-      guideLayer.appendChild(label);
+      return;
     }
 
-    function findSnapPosition(tag, proposedX, proposedY) {
-      const overlay = tag.closest('.sheet-overlay');
+    function renderSelectionGuides(tag) {
+      if (!tag) return;
       const guideLayer = getGuideLayer(tag.dataset.sheetId);
-      if (!overlay || !guideLayer) {
-        return { x: proposedX, y: proposedY };
-      }
-
+      const input = getTagInput(tag);
+      if (!guideLayer || !input) return;
       clearGuides(tag.dataset.sheetId);
-
-      const tagWidth = tag.offsetWidth;
-      const tagHeight = tag.offsetHeight;
-      const candidates = Array.from(overlay.querySelectorAll('.price-tag')).filter((item) => item !== tag);
-      const ownPointsX = [
-        { key: 'left', value: proposedX },
-        { key: 'center', value: proposedX + tagWidth / 2 },
-        { key: 'right', value: proposedX + tagWidth }
-      ];
-      const ownPointsY = [
-        { key: 'top', value: proposedY },
-        { key: 'middle', value: proposedY + tagHeight / 2 },
-        { key: 'bottom', value: proposedY + tagHeight }
-      ];
-
-      let bestX = null;
-      let bestY = null;
-
-      candidates.forEach((other) => {
-        const otherX = parseFloat(other.style.left || '0');
-        const otherY = parseFloat(other.style.top || '0');
-        const otherPointsX = [
-          { key: 'left', value: otherX },
-          { key: 'center', value: otherX + other.offsetWidth / 2 },
-          { key: 'right', value: otherX + other.offsetWidth }
-        ];
-        const otherPointsY = [
-          { key: 'top', value: otherY },
-          { key: 'middle', value: otherY + other.offsetHeight / 2 },
-          { key: 'bottom', value: otherY + other.offsetHeight }
-        ];
-
-        ownPointsX.forEach((ownPoint) => {
-          otherPointsX.forEach((otherPoint) => {
-            const delta = otherPoint.value - ownPoint.value;
-            const distance = Math.abs(delta);
-            if (distance <= SNAP_THRESHOLD && (!bestX || distance < bestX.distance)) {
-              bestX = {
-                distance,
-                snappedX: proposedX + delta,
-                guideX: otherPoint.value,
-                other
-              };
-            }
-          });
-        });
-
-        ownPointsY.forEach((ownPoint) => {
-          otherPointsY.forEach((otherPoint) => {
-            const delta = otherPoint.value - ownPoint.value;
-            const distance = Math.abs(delta);
-            if (distance <= SNAP_THRESHOLD && (!bestY || distance < bestY.distance)) {
-              bestY = {
-                distance,
-                snappedY: proposedY + delta,
-                guideY: otherPoint.value,
-                other
-              };
-            }
-          });
-        });
-      });
-
-      let nextX = proposedX;
-      let nextY = proposedY;
-
-      if (bestX) {
-        nextX = bestX.snappedX;
-        renderGuideLine(guideLayer, 'x', bestX.guideX);
-      }
-
-      if (bestY) {
-        nextY = bestY.snappedY;
-        renderGuideLine(guideLayer, 'y', bestY.guideY);
-      }
-
-      const activeRect = {
-        left: nextX,
-        right: nextX + tagWidth,
-        top: nextY,
-        bottom: nextY + tagHeight
-      };
-      const relatedTag = bestX?.other || bestY?.other || candidates[0];
-
-      if (relatedTag) {
-        const otherX = parseFloat(relatedTag.style.left || '0');
-        const otherY = parseFloat(relatedTag.style.top || '0');
-        const otherRect = {
-          left: otherX,
-          right: otherX + relatedTag.offsetWidth,
-          top: otherY,
-          bottom: otherY + relatedTag.offsetHeight
-        };
-        const horizontalOverlap = !(activeRect.right < otherRect.left || activeRect.left > otherRect.right);
-        const verticalOverlap = !(activeRect.bottom < otherRect.top || activeRect.top > otherRect.bottom);
-
-        if (verticalOverlap) {
-          const leftGap = Math.abs(activeRect.left - otherRect.right);
-          const rightGap = Math.abs(otherRect.left - activeRect.right);
-          const gap = Math.min(leftGap, rightGap);
-          if (Number.isFinite(gap) && gap > 0) {
-            const x1 = activeRect.left > otherRect.left ? otherRect.right : activeRect.right;
-            const x2 = activeRect.left > otherRect.left ? activeRect.left : otherRect.left;
-            const midX = x1 + (x2 - x1) / 2;
-            const overlapTop = Math.max(activeRect.top, otherRect.top);
-            const overlapBottom = Math.min(activeRect.bottom, otherRect.bottom);
-            const midY = overlapTop + (overlapBottom - overlapTop) / 2;
-            renderMeasure(guideLayer, midX, midY, `${Math.round(gap)} px`);
-          }
-        }
-
-        if (horizontalOverlap) {
-          const topGap = Math.abs(activeRect.top - otherRect.bottom);
-          const bottomGap = Math.abs(otherRect.top - activeRect.bottom);
-          const gap = Math.min(topGap, bottomGap);
-          if (Number.isFinite(gap) && gap > 0) {
-            const y1 = activeRect.top > otherRect.top ? otherRect.bottom : activeRect.bottom;
-            const y2 = activeRect.top > otherRect.top ? activeRect.top : otherRect.top;
-            const midY = y1 + (y2 - y1) / 2;
-            const overlapLeft = Math.max(activeRect.left, otherRect.left);
-            const overlapRight = Math.min(activeRect.right, otherRect.right);
-            const midX = overlapLeft + (overlapRight - overlapLeft) / 2;
-            renderMeasure(guideLayer, midX, midY, `${Math.round(gap)} px`);
-          }
-        }
-      }
-
-      renderMeasure(guideLayer, nextX + tagWidth / 2, Math.max(14, nextY - 14), `${Math.round(nextX)} / ${Math.round(nextY)} px`);
-
-      const input = tag.querySelector('input');
-      if (input) {
-        const inputStyles = window.getComputedStyle(input);
-        const paddingLeft = parseFloat(inputStyles.paddingLeft || '0');
-        const paddingTop = parseFloat(inputStyles.paddingTop || '0');
-        const fontPx = parseFloat(inputStyles.fontSize || '13.333');
-        const lineHeight = parseFloat(inputStyles.lineHeight || String(fontPx * 1.05));
-        const baselineY = nextY + paddingTop + lineHeight;
-        const columnX = nextX + paddingLeft;
-        tag.dataset.anchorX = String(columnX);
-        tag.dataset.anchorY = String(baselineY);
-        renderBaselineGuide(guideLayer, baselineY);
-        renderColumnGuide(guideLayer, columnX);
-      }
-
-      return { x: nextX, y: nextY };
-    }
-
-    function buildExportCanvas(sheet) {
-      const overlay = getSheetOverlay(sheet);
-      const sourceCanvas = getSheetCanvas(sheet);
-      if (!overlay || !sourceCanvas) {
-        return null;
-      }
-
-      const exportCanvas = document.createElement('canvas');
-      exportCanvas.width = sourceCanvas.width;
-      exportCanvas.height = sourceCanvas.height;
-
-      const context = exportCanvas.getContext('2d');
-      context.drawImage(sourceCanvas, 0, 0);
-      context.fillStyle = '#000000';
-      context.textBaseline = 'top';
-      context.font = '13.333px "Helvetica Neue", Helvetica, Arial, sans-serif';
-
-      const scaleX = sourceCanvas.width / Math.max(overlay.clientWidth, 1);
-      const scaleY = sourceCanvas.height / Math.max(overlay.clientHeight, 1);
-      const tags = Array.from(overlay.querySelectorAll('.price-tag'));
-
-      tags.forEach((tag) => {
-        const input = tag.querySelector('input');
-        if (!input) {
-          return;
-        }
-
-        const value = (input.value || input.placeholder || '').trim();
-        if (!value) {
-          return;
-        }
-
-        const inputStyles = window.getComputedStyle(input);
-        const paddingLeft = parseFloat(inputStyles.paddingLeft || '0');
-        const paddingTop = parseFloat(inputStyles.paddingTop || '0');
-        const fontPx = parseFloat(inputStyles.fontSize || '13.333');
-        const fontSize = fontPx * scaleY;
-        const x = (tag.offsetLeft + paddingLeft) * scaleX;
-        const y = (tag.offsetTop + paddingTop) * scaleY;
-
-        context.font = `${fontSize}px "Helvetica Neue", Helvetica, Arial, sans-serif`;
-        context.fillText(value, x, y);
-      });
-
-      return exportCanvas;
+      const metrics = getTextMetrics(input);
+      const rightX = getTagAnchorX(tag);
+      const baselineY = getTagBaselineY(tag);
+      const leftX = rightX - metrics.width;
+      const bottomY = baselineY + metrics.descent;
+      renderGuideLine(guideLayer, 'x', leftX, true);
+      renderGuideLine(guideLayer, 'x', rightX, false);
+      renderGuideLine(guideLayer, 'y', bottomY, true);
+      renderMeasure(guideLayer, rightX - tag.offsetWidth / 2, Math.max(14, baselineY - 14), `${Math.round(rightX)} / ${Math.round(baselineY)} px`);
     }
 
     function clamp(value, min, max) {
       return Math.min(Math.max(value, min), max);
     }
 
-    function setTagPosition(tag, x, y) {
+    function getTagInput(tag) {
+      return tag ? tag.querySelector('input') : null;
+    }
+
+    function getTextMetrics(input) {
+      const styles = window.getComputedStyle(input);
+      const fontSize = parseFloat(styles.fontSize || '12');
+      const lineHeight = parseFloat(styles.lineHeight || String(fontSize));
+      const fontFamily = styles.fontFamily || '"Helvetica Neue", Helvetica, Arial, sans-serif';
+      const fontWeight = styles.fontWeight || '500';
+      const canvas = getTextMetrics.canvas || (getTextMetrics.canvas = document.createElement('canvas'));
+      const context = canvas.getContext('2d');
+      context.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+      const metrics = context.measureText(input.value || input.placeholder || '0');
+      const ascent = metrics.actualBoundingBoxAscent || fontSize * 0.78;
+      const descent = metrics.actualBoundingBoxDescent || Math.max(1, lineHeight - ascent);
+      return { fontSize, lineHeight, ascent, descent };
+    }
+
+    function getTagAnchorX(tag) {
+      const stored = parseFloat(tag.dataset.anchorX || '');
+      if (Number.isFinite(stored)) return stored;
+      return parseFloat(tag.style.left || '0') + tag.offsetWidth;
+    }
+
+    function getTagBaselineY(tag) {
+      const stored = parseFloat(tag.dataset.anchorY || '');
+      if (Number.isFinite(stored)) return stored;
+      const input = getTagInput(tag);
+      if (!input) return parseFloat(tag.style.top || '0');
+      const metrics = getTextMetrics(input);
+      return parseFloat(tag.style.top || '0') + metrics.ascent;
+    }
+
+    function setTagPosition(tag, x, baselineY) {
       const overlay = tag.closest('.sheet-overlay');
-      if (!overlay) {
-        return;
-      }
-      const bounds = overlay.getBoundingClientRect();
-      const maxX = Math.max(0, bounds.width - tag.offsetWidth);
-      const maxY = Math.max(0, bounds.height - tag.offsetHeight);
-      tag.style.left = `${clamp(x, 0, maxX)}px`;
-      tag.style.top = `${clamp(y, 0, maxY)}px`;
+      const input = getTagInput(tag);
+      if (!overlay || !input) return;
+      const metrics = getTextMetrics(input);
+      const minRightX = tag.offsetWidth;
+      const maxRightX = Math.max(minRightX, overlay.clientWidth);
+      const minBaseline = metrics.ascent;
+      const maxBaseline = Math.max(minBaseline, overlay.clientHeight - metrics.descent);
+      const clampedX = clamp(x, minRightX, maxRightX);
+      const clampedBaselineY = clamp(baselineY, minBaseline, maxBaseline);
+      tag.dataset.anchorX = String(clampedX);
+      tag.dataset.anchorY = String(clampedBaselineY);
+      tag.style.left = `${clampedX - tag.offsetWidth}px`;
+      tag.style.top = `${clampedBaselineY - metrics.ascent}px`;
     }
 
     function resizeInput(input) {
@@ -931,18 +501,30 @@
       measure.style.fontWeight = styles.fontWeight;
       measure.textContent = input.value || input.placeholder || '$0';
       document.body.appendChild(measure);
-      const width = Math.ceil(measure.getBoundingClientRect().width + 14);
+      const width = Math.ceil(measure.getBoundingClientRect().width + 4);
       document.body.removeChild(measure);
-      input.parentElement.style.width = `${Math.max(68, Math.min(width, 220))}px`;
+      input.parentElement.style.width = `${Math.max(24, Math.min(width, 220))}px`;
     }
 
     function activateTag(tag) {
       document.querySelectorAll('.price-tag').forEach((item) => item.classList.remove('active'));
+      document.querySelectorAll('.menu-sheet').forEach((sheet) => clearGuides(sheet));
       if (tag) {
         tag.classList.add('active');
-        tag.classList.remove('committed');
         setActiveSheet(tag.dataset.sheetId);
+        renderSelectionGuides(tag);
+      } else {
+        updateStatus(activeSheetId ? 'Puedes agregar o mover precios.' : 'Carga uno o varios PDF para empezar.');
       }
+    }
+
+    function startEditingTag(tag) {
+      const input = getTagInput(tag);
+      if (!input) return;
+      tag.classList.remove('committed');
+      activateTag(tag);
+      input.focus();
+      input.select();
     }
 
     function setActiveSheet(sheetId) {
@@ -953,61 +535,172 @@
       if (sheetId) {
         const sheet = getSheetElement(sheetId);
         const badge = sheet ? sheet.querySelector('.sheet-badge') : null;
-        const name = badge ? badge.textContent : 'Lienzo activo';
-        updateStatus(`${name} seleccionado. Puedes agregar o mover precios.`);
+        updateStatus(`${badge ? badge.textContent : 'Lienzo activo'} seleccionado. Puedes agregar o mover precios.`);
       } else {
         updateStatus('Carga uno o varios PDF para empezar.');
       }
     }
 
-    function addPriceTag() {
-      if (!activeSheetId) {
-        updateStatus('Primero carga al menos un PDF y selecciona un lienzo.');
-        return;
+    function findSnapPosition(tag, proposedX, proposedY) {
+      const overlay = tag.closest('.sheet-overlay');
+      const guideLayer = getGuideLayer(tag.dataset.sheetId);
+      if (!overlay || !guideLayer) return { x: proposedX, y: proposedY };
+      clearGuides(tag.dataset.sheetId);
+
+      const tagWidth = tag.offsetWidth;
+      const input = getTagInput(tag);
+      const ownMetrics = input ? getTextMetrics(input) : { ascent: 0, descent: tag.offsetHeight, width: tag.offsetWidth };
+      const candidates = Array.from(overlay.querySelectorAll('.price-tag')).filter((item) => item !== tag);
+      const ownPointsX = [proposedX - ownMetrics.width, proposedX];
+      const ownPointsY = [proposedY, proposedY + ownMetrics.descent];
+      let bestX = null;
+      let bestY = null;
+
+      candidates.forEach((other) => {
+        const otherInput = getTagInput(other);
+        const otherMetrics = otherInput ? getTextMetrics(otherInput) : { ascent: 0, descent: other.offsetHeight, width: other.offsetWidth };
+        const otherX = getTagAnchorX(other);
+        const otherY = getTagBaselineY(other);
+        const otherPointsX = [otherX - otherMetrics.width, otherX];
+        const otherPointsY = [otherY, otherY + otherMetrics.descent];
+
+        const baselineDelta = otherY - proposedY;
+        const baselineDistance = Math.abs(baselineDelta);
+        if (baselineDistance <= SNAP_THRESHOLD && (!bestY || baselineDistance < bestY.distance || !bestY.isBaseline)) {
+          bestY = { distance: baselineDistance, snappedY: proposedY + baselineDelta, guideY: otherY, isBaseline: true };
+        }
+
+        ownPointsX.forEach((ownPoint) => {
+          otherPointsX.forEach((otherPoint) => {
+            const delta = otherPoint - ownPoint;
+            const distance = Math.abs(delta);
+            if (distance <= SNAP_THRESHOLD && (!bestX || distance < bestX.distance)) {
+              bestX = { distance, snappedX: proposedX + delta, guideX: otherPoint };
+            }
+          });
+        });
+
+        ownPointsY.forEach((ownPoint) => {
+          otherPointsY.forEach((otherPoint) => {
+            const delta = otherPoint - ownPoint;
+            const distance = Math.abs(delta);
+            if (distance <= SNAP_THRESHOLD && (!bestY || (!bestY.isBaseline && distance < bestY.distance))) {
+              bestY = { distance, snappedY: proposedY + delta, guideY: otherPoint, isBaseline: false };
+            }
+          });
+        });
+      });
+
+      let nextX = proposedX;
+      let nextY = proposedY;
+      if (bestX) {
+        nextX = bestX.snappedX;
+        renderGuideLine(guideLayer, 'x', bestX.guideX);
+      }
+      if (bestY) {
+        nextY = bestY.snappedY;
+        renderGuideLine(guideLayer, 'y', bestY.guideY);
       }
 
-      const overlay = getSheetOverlay(activeSheetId);
+      if (input) {
+        renderGuideLine(guideLayer, 'y', nextY + ownMetrics.descent, true);
+        renderGuideLine(guideLayer, 'x', nextX - ownMetrics.width, true);
+      }
+
+      renderMeasure(guideLayer, nextX - ownMetrics.width / 2, Math.max(14, nextY - 14), `${Math.round(nextX)} / ${Math.round(nextY)} px`);
+      return { x: nextX, y: nextY };
+    }
+
+    async function buildExportCanvas(sheet) {
+      const overlay = getSheetOverlay(sheet);
+      const sourceCanvas = getSheetCanvas(sheet);
+      if (!overlay || !sourceCanvas) return null;
+
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width = sourceCanvas.width;
+      exportCanvas.height = sourceCanvas.height;
+      const context = exportCanvas.getContext('2d');
+      context.drawImage(sourceCanvas, 0, 0);
+
+      const scaleX = sourceCanvas.width / Math.max(overlay.clientWidth, 1);
+      const scaleY = sourceCanvas.height / Math.max(overlay.clientHeight, 1);
+      const tags = Array.from(overlay.querySelectorAll('.price-tag'));
+
+      tags.forEach((tag) => {
+        const input = getTagInput(tag);
+        if (!input) return;
+        const value = (input.value || input.placeholder || '').trim();
+        if (!value) return;
+
+        const styles = window.getComputedStyle(input);
+        const metrics = getTextMetrics(input);
+        const fontFamily = styles.fontFamily || '"Helvetica Neue", Helvetica, Arial, sans-serif';
+        const fontWeight = styles.fontWeight || '500';
+        const fontSize = metrics.fontSize * scaleY;
+        const anchorX = getTagAnchorX(tag) * scaleX;
+        const baselineY = getTagBaselineY(tag) * scaleY;
+
+        context.save();
+        context.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+        context.fillStyle = styles.color || '#000000';
+        context.textAlign = 'right';
+        context.textBaseline = 'alphabetic';
+        context.fillText(value, anchorX, baselineY);
+        context.restore();
+      });
+
+      return exportCanvas;
+    }
+
+    function addPriceTag(prefill = '', position = null, sheetId = activeSheetId) {
+      if (!sheetId) {
+        updateStatus('Primero carga al menos un PDF y selecciona un lienzo.');
+        return null;
+      }
+      const overlay = getSheetOverlay(sheetId);
       if (!overlay) {
         updateStatus('No se encontro el lienzo activo.');
-        return;
+        return null;
       }
-
-      const localPriceCount = overlay.querySelectorAll('.price-tag').length;
-      const initialY = 24 + localPriceCount * 28;
 
       const tag = document.createElement('div');
       tag.className = 'price-tag active';
-      tag.style.left = '24px';
-      tag.style.top = `${initialY}px`;
+      tag.dataset.sheetId = sheetId;
       tag.dataset.index = String(priceCount + 1);
-      tag.dataset.sheetId = activeSheetId;
 
       const input = document.createElement('input');
       input.type = 'text';
       input.placeholder = '$0';
-      input.value = '';
+      input.value = prefill;
       input.spellcheck = false;
       input.autocomplete = 'off';
 
       tag.appendChild(input);
       overlay.appendChild(tag);
+      resizeInput(input);
+      const initialX = position ? position.x : (overlay.clientWidth / 2) + (tag.offsetWidth / 2);
+      const initialY = position ? position.y : (overlay.clientHeight / 2);
+      setTagPosition(tag, initialX, initialY);
+
       priceCount += 1;
       lastCreatedTag = tag;
-      resizeInput(input);
-      setTagPosition(tag, 24, initialY);
-      updateStatus(`Precio ${priceCount} creado. Puedes arrastrarlo y editarlo.`);
       activateTag(tag);
       input.focus();
       input.select();
+      updateStatus(`Precio ${priceCount} creado. Puedes arrastrarlo y editarlo.`);
 
-      input.addEventListener('input', () => resizeInput(input));
+      input.addEventListener('input', () => {
+        const anchorX = getTagAnchorX(tag);
+        const baselineY = getTagBaselineY(tag);
+        resizeInput(input);
+        setTagPosition(tag, anchorX, baselineY);
+      });
       input.addEventListener('focus', () => activateTag(tag));
       input.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
           event.preventDefault();
           tag.classList.add('committed');
           tag.classList.remove('active');
-          resizeInput(input);
           input.blur();
           clearGuides(tag.dataset.sheetId);
           updateStatus('Precio confirmado.');
@@ -1015,34 +708,30 @@
       });
 
       tag.addEventListener('pointerdown', (event) => {
-        if (event.target === input) {
+        if (event.target === input && !tag.classList.contains('committed')) {
           activateTag(tag);
           return;
         }
-
         const rect = tag.getBoundingClientRect();
+        const inputMetrics = getTextMetrics(input);
         dragState = {
           tag,
           sheetId: tag.dataset.sheetId,
           pointerId: event.pointerId,
-          offsetX: event.clientX - rect.left,
-          offsetY: event.clientY - rect.top
+          offsetX: event.clientX - (rect.left + tag.offsetWidth),
+          offsetY: event.clientY - (rect.top + inputMetrics.ascent)
         };
-
         tag.setPointerCapture(event.pointerId);
         activateTag(tag);
         event.preventDefault();
       });
 
       tag.addEventListener('dblclick', () => {
-        if (lastCreatedTag === tag) {
-          lastCreatedTag = null;
-        }
-        tag.remove();
-        priceCount -= 1;
-        clearGuides(tag.dataset.sheetId);
-        updateStatus('Precio eliminado con doble clic.');
+        startEditingTag(tag);
+        updateStatus('Precio listo para editar.');
       });
+
+      return tag;
     }
 
     function duplicatePriceTag() {
@@ -1051,48 +740,36 @@
         updateStatus('No hay ningun precio para duplicar.');
         return;
       }
-
-      const sheetId = sourceTag.dataset.sheetId;
-      const overlay = getSheetOverlay(sheetId);
-      if (!overlay) {
-        updateStatus('No se encontro el lienzo del precio a duplicar.');
-        return;
-      }
-
-      setActiveSheet(sheetId);
-      const inputValue = sourceTag.querySelector('input')?.value || '';
-      addPriceTag();
-      const newTag = lastCreatedTag;
-      const newInput = newTag ? newTag.querySelector('input') : null;
-      if (!newTag || !newInput) {
-        return;
-      }
-
-      const sourceX = parseFloat(sourceTag.style.left || '0');
-      const sourceY = parseFloat(sourceTag.style.top || '0');
-      newInput.value = inputValue;
-      resizeInput(newInput);
-      setTagPosition(newTag, sourceX, sourceY + 24);
+      const sourceInput = getTagInput(sourceTag);
+      const x = getTagAnchorX(sourceTag);
+      const y = getTagBaselineY(sourceTag);
+      addPriceTag(sourceInput ? sourceInput.value : '', { x, y: y + 24 }, sourceTag.dataset.sheetId);
       updateStatus('Precio duplicado.');
     }
 
+    function deleteActivePriceTag() {
+      const activeTag = document.querySelector('.price-tag.active');
+      if (!activeTag) {
+        updateStatus('No hay ningun precio activo para borrar.');
+        return;
+      }
+      if (lastCreatedTag === activeTag) lastCreatedTag = null;
+      clearGuides(activeTag.dataset.sheetId);
+      activeTag.remove();
+      priceCount = Math.max(0, priceCount - 1);
+      activateTag(null);
+      updateStatus('Precio borrado.');
+    }
+
     function clearAll() {
-      const previousActiveSheetId = activeSheetId;
       document.querySelectorAll('.price-tag').forEach((tag) => tag.remove());
-      document.querySelectorAll('.menu-sheet').forEach((sheet) => {
-        const blobUrl = sheet.dataset.blobUrl;
-        if (blobUrl) {
-          URL.revokeObjectURL(blobUrl);
-        }
-        sheet.remove();
-      });
+      document.querySelectorAll('.menu-sheet').forEach((sheet) => sheet.remove());
       priceCount = 0;
       sheetCount = 0;
       activeSheetId = null;
-      imageLoader.value = '';
       lastCreatedTag = null;
+      imageLoader.value = '';
       toggleEmptyState();
-      clearGuides(previousActiveSheetId);
       updateStatus('Todo limpio. Carga otro PDF para seguir.');
     }
 
@@ -1104,79 +781,59 @@
       }
 
       updateStatus('Preparando PDF...');
-      const tags = Array.from(document.querySelectorAll('.price-tag'));
-      const badges = Array.from(document.querySelectorAll('.sheet-badge'));
-      tags.forEach((tag) => tag.classList.add('exporting'));
-      badges.forEach((badge) => badge.classList.add('hide-for-export'));
 
       try {
+        if (!window.jspdf || !window.jspdf.jsPDF) throw new Error('jsPDF no cargo correctamente');
+
         const { jsPDF } = window.jspdf;
         let pdf = null;
 
         for (let index = 0; index < sheets.length; index += 1) {
           const sheet = sheets[index];
           const sourceCanvas = getSheetCanvas(sheet);
-          const exportCanvas = buildExportCanvas(sheet);
-          if (!sourceCanvas || !exportCanvas) {
-            continue;
-          }
+          const exportCanvas = await buildExportCanvas(sheet);
+          if (!sourceCanvas || !exportCanvas) continue;
           const pageWidth = Number(sheet.dataset.pageWidth || sourceCanvas.width);
           const pageHeight = Number(sheet.dataset.pageHeight || sourceCanvas.height);
-
-          const imageData = exportCanvas.toDataURL('image/png', 1.0);
           const orientation = pageWidth > pageHeight ? 'landscape' : 'portrait';
 
           if (!pdf) {
-            pdf = new jsPDF({
-              orientation,
-              unit: 'pt',
-              format: [pageWidth, pageHeight],
-              compress: true
-            });
+            pdf = new jsPDF({ orientation, unit: 'pt', format: [pageWidth, pageHeight], compress: true });
           } else {
             pdf.addPage([pageWidth, pageHeight], orientation);
             pdf.setPage(index + 1);
           }
 
-          pdf.addImage(imageData, 'PNG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+          pdf.addImage(exportCanvas.toDataURL('image/png', 1.0), 'PNG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
         }
 
-        if (!pdf) {
-          throw new Error('No se pudo generar el PDF final');
-        }
-
+        if (!pdf) throw new Error('No se pudo generar el PDF final');
         pdf.save('menu-precios.pdf');
         updateStatus('PDF exportado correctamente.');
       } catch (error) {
         console.error(error);
-        updateStatus('No se pudo exportar el PDF. Revisa la consola de Chrome.');
-      } finally {
-        tags.forEach((tag) => tag.classList.remove('exporting'));
-        badges.forEach((badge) => badge.classList.remove('hide-for-export'));
+        updateStatus('No se pudo exportar el PDF. Recarga la pagina y prueba de nuevo.');
       }
     }
 
     async function loadPdfFile(file) {
-      if (!window.pdfjsLib) {
-        throw new Error('pdf.js no cargo correctamente');
-      }
-
+      if (!window.pdfjsLib) throw new Error('pdf.js no cargo correctamente');
       const buffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({
         data: buffer,
         useWorkerFetch: false,
         isEvalSupported: false
       }).promise;
+
       const page = await pdf.getPage(1);
       const baseViewport = page.getViewport({ scale: 1 });
-      const targetWidth = 1800;
-      const scale = targetWidth / baseViewport.width;
+      const scale = 1800 / baseViewport.width;
       const viewport = page.getViewport({ scale });
-      const renderCanvas = document.createElement('canvas');
-      const context = renderCanvas.getContext('2d');
-
-      renderCanvas.width = Math.floor(viewport.width);
-      renderCanvas.height = Math.floor(viewport.height);
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = Math.floor(viewport.width);
+      canvas.height = Math.floor(viewport.height);
+      canvas.className = 'sheet-canvas';
 
       await page.render({
         canvasContext: context,
@@ -1184,11 +841,8 @@
         intent: 'print'
       }).promise;
 
-      const blobUrl = URL.createObjectURL(file);
-
       return {
-        canvas: renderCanvas,
-        blobUrl,
+        canvas,
         pageWidth: baseViewport.width,
         pageHeight: baseViewport.height
       };
@@ -1202,7 +856,6 @@
       sheet.dataset.sheetId = sheetId;
       sheet.dataset.pageWidth = String(pdfAsset.pageWidth);
       sheet.dataset.pageHeight = String(pdfAsset.pageHeight);
-      sheet.dataset.blobUrl = pdfAsset.blobUrl;
 
       const badge = document.createElement('div');
       badge.className = 'sheet-badge';
@@ -1213,34 +866,23 @@
 
       const stage = document.createElement('div');
       stage.className = 'sheet-stage';
-      stage.style.setProperty('--sheet-ratio', `${pdfAsset.pageWidth} / ${pdfAsset.pageHeight}`);
-
-      const embed = document.createElement('embed');
-      embed.className = 'sheet-pdf';
-      embed.type = 'application/pdf';
-      embed.src = `${pdfAsset.blobUrl}#page=1&toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
+      stage.style.aspectRatio = `${pdfAsset.pageWidth} / ${pdfAsset.pageHeight}`;
 
       const overlay = document.createElement('div');
       overlay.className = 'sheet-overlay';
       const guideLayer = document.createElement('div');
       guideLayer.className = 'guide-layer';
 
-      pdfAsset.canvas.classList.add('export-source-canvas');
-      pdfAsset.canvas.setAttribute('aria-hidden', 'true');
-
-      stage.appendChild(embed);
       overlay.appendChild(guideLayer);
+      stage.appendChild(pdfAsset.canvas);
       stage.appendChild(overlay);
       frame.appendChild(stage);
-      frame.appendChild(pdfAsset.canvas);
       sheet.appendChild(badge);
       sheet.appendChild(frame);
       canvasList.appendChild(sheet);
 
       sheet.addEventListener('pointerdown', (event) => {
-        if (!event.target.closest('.price-tag')) {
-          setActiveSheet(sheetId);
-        }
+        if (!event.target.closest('.price-tag')) setActiveSheet(sheetId);
       });
 
       return sheetId;
@@ -1248,19 +890,15 @@
 
     imageLoader.addEventListener('change', async (event) => {
       const files = Array.from(event.target.files || []);
-      if (!files.length) {
-        return;
-      }
-
-      const invalidFile = files.find((file) => file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf'));
-      if (invalidFile) {
+      if (!files.length) return;
+      const invalid = files.find((file) => file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf'));
+      if (invalid) {
         updateStatus('Todos los archivos deben ser PDF.');
         imageLoader.value = '';
         return;
       }
 
       updateStatus(`Procesando ${files.length} PDF...`);
-
       try {
         let lastSheetId = activeSheetId;
         for (const file of files) {
@@ -1268,28 +906,21 @@
           lastSheetId = createSheet(pdfAsset, file.name);
         }
         toggleEmptyState();
-        if (lastSheetId) {
-          setActiveSheet(lastSheetId);
-        }
-        updateStatus(`${files.length} PDF cargado(s). Haz clic en un lienzo para editarlo o usa el ultimo activo.`);
+        if (lastSheetId) setActiveSheet(lastSheetId);
+        updateStatus(`${files.length} PDF cargado(s). Haz clic en un lienzo para editarlo.`);
       } catch (error) {
         console.error(error);
         toggleEmptyState();
-        updateStatus('No se pudo leer uno de los PDF. Recarga la pagina y prueba de nuevo.');
+        updateStatus('No se pudo leer uno de los PDF. Prueba de nuevo.');
       } finally {
         imageLoader.value = '';
       }
     });
 
     window.addEventListener('pointermove', (event) => {
-      if (!dragState) {
-        return;
-      }
-
+      if (!dragState) return;
       const bounds = getSheetRect(dragState.sheetId);
-      if (!bounds) {
-        return;
-      }
+      if (!bounds) return;
       const nextX = event.clientX - bounds.left - dragState.offsetX;
       const nextY = event.clientY - bounds.top - dragState.offsetY;
       const snapped = findSnapPosition(dragState.tag, nextX, nextY);
@@ -1297,31 +928,22 @@
     });
 
     window.addEventListener('pointerup', (event) => {
-      if (!dragState) {
-        return;
-      }
-
-      try {
-        dragState.tag.releasePointerCapture(event.pointerId);
-      } catch (captureError) {
-        // Nothing to do if capture is already gone.
-      }
-
+      if (!dragState) return;
+      try { dragState.tag.releasePointerCapture(event.pointerId); } catch (error) {}
+      renderSelectionGuides(dragState.tag);
       updateStatus('Posicion actualizada.');
-      clearGuides(dragState.sheetId);
       dragState = null;
     });
 
     window.addEventListener('resize', () => {
       document.querySelectorAll('.price-tag').forEach((tag) => {
-        const currentX = parseFloat(tag.style.left || '0');
-        const currentY = parseFloat(tag.style.top || '0');
-        setTagPosition(tag, currentX, currentY);
+        setTagPosition(tag, getTagAnchorX(tag), getTagBaselineY(tag));
       });
     });
 
-    addPriceBtn.addEventListener('click', addPriceTag);
+    addPriceBtn.addEventListener('click', () => addPriceTag());
     duplicateBtn.addEventListener('click', duplicatePriceTag);
+    deleteBtn.addEventListener('click', deleteActivePriceTag);
     clearBtn.addEventListener('click', clearAll);
     exportBtn.addEventListener('click', exportToPdf);
     document.addEventListener('pointerdown', (event) => {
